@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knights Prime - AI Image & Video Generator</title>
+  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://YOUR_CLERK_DOMAIN.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { color: #FFD700; }
+    .card { background: #1a1a1a; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; text-align: center; }
+    input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; font-size: 16px; }
+    input { background: #2a2a2a; color: #fff; }
+    button { background: #FFD700; color: #000; font-weight: bold; cursor: pointer; }
+    button:disabled { background: #555; cursor: not-allowed; }
+    #result img, #result video { width: 100%; border-radius: 12px; margin-top: 20px; }
+    #clerk { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>⚔️ Knights Prime AI Generator</h1>
+  
+  <div class="card">
+    <div id="clerk"></div>
+    
+    <div id="app" style="display:none;">
+      <input id="prompt" type="text" placeholder="Describe your knight..." />
+      <button id="imageBtn">Generate Image</button>
+      <button id="videoBtn">Generate Video</button>
+      <div id="status"></div>
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // ===== PASTE YOUR KEYS HERE =====
+    const CLERK_PUBLISHABLE_KEY = "pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk";
+    const FAL_KEY = "b29be3dc-fb99-46b2-9db2-433962616b44:39f7fdb20111bbb472c3c6d1b680ac0c"; // Must be Browser key
+
+    // ===== CLERK LOGIN =====
+    await Clerk.load();
+    const clerkDiv = document.getElementById("clerk");
+    const appDiv = document.getElementById("app");
+
+    if (Clerk.user) {
+      clerkDiv.style.display = "none";
+      appDiv.style.display = "block";
+    } else {
+      Clerk.mountSignIn(clerkDiv);
+    }
+
+    Clerk.addListener(({ user }) => {
+      if (user) {
+        clerkDiv.style.display = "none";
+        appDiv.style.display = "block";
+      }
+    });
+
+    // ===== GENERATE FUNCTION =====
+    async function generate(type) {
+      const prompt = document.getElementById("prompt").value;
+      if (!prompt) return alert("Please enter a prompt");
+      
+      btns.forEach(b => b.disabled = true);
+      status.innerText = `Generating ${type}... 30-60s`;
+      result.innerHTML = "";
+
+      let endpoint = type === "image" 
+        ? "https://queue.fal.run/fal-ai/flux/schnell"
+        : "https://queue.fal.run/fal-ai/kling-video/v1.6/standard/text-to-video";
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Authorization": `Key ${FAL_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            prompt: prompt
+          })
+        });
+
+        const data = await response.json();
+        status.innerText = "Done!";
+        
+        if(type === "image"){
+          result.innerHTML = `<img src="${data.images[0].url}" />`;
+        } else {
+          result.innerHTML = `<video src="${data.video.url}" controls autoplay loop></video>`;
+        }
+      } catch (err) {
+        status.innerText = "Error: " + err.message;
+      }
+      btns.forEach(b => b.disabled = false);
+    }
+
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+    const btns = [document.getElementById("imageBtn"), document.getElementById("videoBtn")];
+    
+    document.getElementById("imageBtn").onclick = () => generate("image");
+    document.getElementById("videoBtn").onclick = () => generate("video");
+  </script>
+</body>
+</html>
