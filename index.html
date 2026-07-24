@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knights Prime AI</title>
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://fleeet-pika-54.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+<style>
+*{box-sizing:border-box} body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;background:#050505;color:#fff;margin:0;}
+.nav{position:sticky;top:0;background:#0f0f0f;border-bottom:1px solid #1a1a1a;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
+.logo{font-size:22px;font-weight:800;color:#8b5cf6;} .logo span{color:#fff;}
+.btn{background:#8b5cf6;border:none;padding:9px 18px;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;}
+.btn:hover{opacity:0.9} .btn:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-ghost{background:#1a1a1a;border:1px solid #333;}
+.btn-follow{background:#1a1a1a;border:1px solid #8b5cf6;color:#8b5cf6;padding:6px 12px;font-size:13px;border-radius:20px;}
+.btn-follow.following{background:#8b5cf6;color:#fff;}
+.container{max-width:700px;margin:20px auto;padding:0 15px;}
+.create-box{background:#0f0f0f;padding:16px;border-radius:12px;border:1px solid #1a1a1a;margin-bottom:20px;}
+.avatar{width:40px;height:40px;border-radius:50%;background:#8b5cf6;display:flex;align-items:center;justify-content:center;font-weight:bold;}
+.create-input{width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:22px;padding:12px 16px;color:#fff;margin:10px 0;}
+.tabs{display:flex;gap:8px;margin:12px 0;}.tab{flex:1;padding:10px;background:#1a1a1a;border:1px solid #2a2a2a;color:#aaa;border-radius:8px;cursor:pointer;font-weight:600;}
+.tab.active{background:#8b5cf6;color:#fff;}.tab.locked{opacity:0.4;cursor:not-allowed;}
+.preview{margin-top:15px;border-radius:10px;overflow:hidden;border:1px solid #1a1a1a;}.preview img,.preview video{width:100%;display:block;}
+.post{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:12px;margin-bottom:20px;}
+.post-header{display:flex;align-items:center;gap:10px;padding:12px 16px;justify-content:space-between;}
+.post img,.post video{width:100%;display:block;}
+.post-buttons{padding:10px 16px;display:flex;gap:20px;border-top:1px solid #1a1a1a;}
+.post-buttons button{background:none;border:none;color:#aaa;font-size:15px;cursor:pointer;font-weight:600;display:flex;gap:6px;align-items:center;}
+.post-buttons button:hover{color:#fff;} .post-buttons button.liked{color:#ff4b5c;}
+.likes{padding:0 16px;font-weight:700;}.caption{padding:8px 16px;}
+.comments{padding:0 16px 12px;font-size:14px;}.comments b{margin-right:5px;}
+.comment-input{display:flex;gap:8px;padding:0 16px 16px;}
+.comment-input input{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;padding:9px 14px;color:#fff;}
+.hidden{display:none;}.note{font-size:12px;color:#aaa;text-align:center;margin-top:8px;} 
+.status{margin-top:10px;color:#8b5cf6;font-size:14px;}
+.error{margin-top:10px;color:#ff4b5c;font-size:14px;}
+</style>
+</head>
+<body>
+<div class="nav"><div class="logo">⚔️ KNIGHTS <span>PRIME</span> AI</div><div id="auth-area"><button class="btn btn-ghost" id="loginBtn">Login</button></div></div>
+
+<div class="container">
+  <div class="create-box">
+    <div style="display:flex; gap:12px;"><div class="avatar" id="myAvatar">G</div><input class="create-input" id="prompt" placeholder="Generate something epic..."></div>
+    <div class="tabs">
+      <button class="tab active" id="imageTab">📷 Image</button>
+      <button class="tab locked" id="videoTab">🎬 Video 🔒 Login Required</button>
+    </div>
+    <select id="style" style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:11px;color:#fff;margin-bottom:10px;">
+      <option value="">Photorealistic</option>
+      <option value=", anime style, Studio Ghibli">Anime</option>
+      <option value=", cinematic, dramatic lighting, 8k">Cinematic</option>
+      <option value=", digital art, fantasy, epic">Fantasy Art</option>
+      <option value=", cyberpunk, neon, futuristic">Cyberpunk</option>
+      <option value=", 3d render, pixar style">3D / Pixar</option>
+      <option value=", oil painting, classical art">Oil Painting</option>
+      <option value=", pixel art, 16bit, retro game">Pixel Art</option>
+      <option value=", watercolor painting, soft">Watercolor</option>
+      <option value=", comic book style, marvel">Comic Book</option>
+    </select>
+    <button class="btn" id="generateBtn" style="width:100%;">Generate</button>
+    <div id="preview" class="preview hidden"></div>
+    <button class="btn hidden" id="postBtn" style="width:100%;margin-top:10px;">Post to Postbook 🔒 Login Required</button>
+    <div class="status" id="status"></div>
+    <div class="error" id="error"></div>
+    <div class="note">Login to post, like, comment, follow, and generate videos</div>
+  </div>
+  <h3 style="margin:20px 0 10px 0;">Postbook</h3>
+  <div id="feed">Loading Knights Prime AI...</div>
+</div>
+
+<script>
+const FAL_BROWSER_TOKEN = "24858116-60c8-40cb-a25e-b2193f562fe4:2f0af93a4cc016b8b87ebf83160cf43b";
+const GIST_ID = "667d7716c249e56e1fd2cc9582d6e0e1";
+const GIST_URL = `https://api.github.com/gists/${GIST_ID}`;
+let mode = 'image'; let lastGenerated = null; let currentUser = null; let following = JSON.parse(localStorage.getItem('kp_following')||'[]');
+
+function showError(msg){document.getElementById('error').innerText=msg; setTimeout(()=>document.getElementById('error').innerText='',5000)}
+
+window.addEventListener('load', async () => {
+  try{
+    await Clerk.load(); 
+    if(Clerk.user){
+      currentUser=Clerk.user.emailAddresses[0].emailAddress.split('@')[0];
+      document.getElementById('myAvatar').innerText=currentUser[0].toUpperCase();
+      document.getElementById('auth-area').innerHTML='<div id="user-button"></div>';
+      Clerk.mountUserButton(document.getElementById('user-button'));
+      document.getElementById('videoTab').classList.remove('locked');
+      document.getElementById('videoTab').innerText='🎬 Video';
+    }else{
+      document.getElementById('loginBtn').onclick=()=>Clerk.openSignIn();
+    }
+  }catch(e){showError("Clerk login not configured yet")}
+  setup(); loadFeed();
+});
+
+function setup(){
+  document.getElementById('imageTab').onclick=()=>{mode='image';setActive('imageTab')};
+  document.getElementById('videoTab').onclick=()=>{if(Clerk.user){mode='video';setActive('videoTab')}else{Clerk.openSignIn()}};
+  document.getElementById('generateBtn').onclick=handleGenerate;
+  document.getElementById('postBtn').onclick=handlePost;
+}
+function setActive(id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+async function handleGenerate(){
+  document.getElementById('error').innerText='';
+  if(mode==='video' && !Clerk.user)return Clerk.openSignIn();
+  const prompt=document.getElementById('prompt').value; if(!prompt)return showError("Type a prompt");
+  const btn=document.getElementById('generateBtn'); btn.disabled=true; document.getElementById('status').innerText="Generating... this takes 10-20s";
+  try{
+    const finalPrompt=prompt+document.getElementById('style').value+", 8k, highly detailed";
+    let url=mode==='image'?await genImage(finalPrompt):await genVideo(finalPrompt);
+    lastGenerated={url,type:mode,prompt};
+    document.getElementById('preview').innerHTML=mode==='image'?`<img src="${url}">`:`<video src="${url}" controls autoplay loop muted></video>`;
+    document.getElementById('preview').classList.remove('hidden');document.getElementById('postBtn').classList.remove('hidden');document.getElementById('status').innerText="Generated! Click Post to Postbook";
+  }catch(e){showError("Error: "+e.message+". Did you add github.io to Fal Allowed Origins?")} 
+  btn.disabled=false;
+}
+
+async function handlePost(){
+  if(!currentUser)return Clerk.openSignIn();
+  try{
+    let db=await getDB();
+    db.unshift({id:Date.now(),user:currentUser,media_url:lastGenerated.url,type:lastGenerated.type,prompt:lastGenerated.prompt,likes:[],comments:[],created_at:Date.now()});
+    await saveDB(db); 
+    document.getElementById('preview').classList.add('hidden');document.getElementById('postBtn').classList.add('hidden');
+    document.getElementById('prompt').value=''; document.getElementById('status').innerText="Posted to Postbook!"; 
+    loadFeed();
+  }catch(e){showError("Post failed: "+e.message)}
+}
+
+async function getDB(){const res=await fetch(GIST_URL); if(!res.ok)throw new Error("Gist not found"); const data=await res.json(); return JSON.parse(data.files['knights-prime-db.json'].content||'[]');}
+async function saveDB(db){const res=await fetch(GIST_URL,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({files:{'knights-prime-db.json':{content:JSON.stringify(db,null,2)}}})}); if(!res.ok)throw new Error("Save failed")}
+
+async function genImage(prompt){const res=await fetch("https://queue.fal.run/fal-ai/flux/schnell",{method:"POST",headers:{"Authorization":"Key "+FAL_BROWSER_TOKEN,"Content-Type":"application/json"},body:JSON.stringify({prompt})});const data=await res.json();if(!res.ok)throw new Error(data.detail||"Fal API Error");return data.images[0].url;}
+async function genVideo(prompt){const res=await fetch("https://queue.fal.run/fal-ai/kling-video/v1.6/text-to-video",{method:"POST",headers:{"Authorization":"Key "+FAL_BROWSER_TOKEN,"Content-Type":"application/json"},body:JSON.stringify({prompt,duration:"5"})});const data=await res.json();const request_id=data.request_id;while(true){await new Promise(r=>setTimeout(r,3000));const s=await fetch(`https://queue.fal.run/fal-ai/kling-video/v1.6/requests/${request_id}/status`,{headers:{"Authorization":"Key "+FAL_BROWSER_TOKEN}});const f=await s.json();if(f.response?.video)return f.response.video.url;}}
+
+async function loadFeed(){
+  try{
+    let db=await getDB();
+    if(db.length===0){document.getElementById('feed').innerHTML='<div style="text-align:center;color:#666;padding:40px;">No posts yet. Be first to post! ⚔️</div>';return;}
+    document.getElementById('feed').innerHTML=db.map(p=>`
+      <div class="post">
+        <div class="post-header">
+          <div style="display:flex;gap:10px;align-items:center;"><div class="avatar">${p.user[0].toUpperCase()}</div><b>${p.user}</b></div>
+          ${currentUser && currentUser!==p.user ? `<button class="btn-follow ${following.includes(p.user)?'following':''}" onclick="toggleFollow('${p.user}')">${following.includes(p.user)?'Following':'Follow'}</button>` : ''}
+        </div>
+        ${p.type==='image'?`<img src="${p.media_url}">`:`<video src="${p.media_url}" controls></video>`}
+        <div class="caption"><b>${p.user}</b> ${p.prompt}</div>
+        <div class="likes">${p.likes.length} likes</div>
+        <div class="post-buttons">
+          <button class="${p.likes.includes(currentUser)?'liked':''}" onclick="toggleLike(${p.id})">❤️ Like</button>
+          <button onclick="document.getElementById('c-${p.id}').focus()">💬 Comment</button>
+        </div>
+        <div class="comments" id="comments-${p.id}">${p.comments.map(c=>`<div><b>${c.user}</b> ${c.text}</div>`).join('')}</div>
+        <div class="comment-input"><input id="c-${p.id}" placeholder="Write a comment..."><button class="btn" onclick="addComment(${p.id})">Post</button></div>
+      </div>
+    `).join('');
+  }catch(e){document.getElementById('feed').innerHTML='<div style="color:red">Feed error: '+e.message+'</div>'}
+}
+
+window.toggleLike=async(id)=>{if(!currentUser)return Clerk.openSignIn();let db=await getDB();let p=db.find(x=>x.id===id);p.likes.includes(currentUser)?p.likes=p.likes.filter(u=>u!==currentUser):p.likes.push(currentUser);await saveDB(db);loadFeed();}
+window.addComment=async(id)=>{if(!currentUser)return Clerk.openSignIn();const input=document.getElementById(`c-${id}`);if(!input.value.trim())return;let db=await getDB();db.find(x=>x.id===id).comments.push({user:currentUser,text:input.value});await saveDB(db);input.value='';loadFeed();}
+window.toggleFollow=(user)=>{if(!currentUser)return Clerk.openSignIn();following.includes(user)?following=following.filter(u=>u!==user):following.push(user);localStorage.setItem('kp_following',JSON.stringify(following));loadFeed();}
+</script>
+</body>
+</html>
