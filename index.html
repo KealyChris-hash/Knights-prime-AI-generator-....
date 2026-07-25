@@ -3,10 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Knights Prime AI - Generate stunning AI images and videos with advanced AI technology" />
+  <meta name="theme-color" content="#7c3aed" />
   <title>Knights Prime - AI Image & Video Generator</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>⚔️</text></svg>" />
-  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+  <link rel="canonical" href="https://knightsprime.ai/" />
+  <script async crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
   <style>
+    :root {
+      --color-primary: #7c3aed;
+      --color-primary-hover: #9333ea;
+      --color-primary-light: #a78bfa;
+      --color-bg-dark: #0a0a0a;
+      --color-bg-darker: #1a0a2e;
+      --color-bg-card: #1a1a1a;
+      --color-border: #333;
+      --color-text: #fff;
+      --color-text-secondary: #a0a0a0;
+      --color-error: #ff6b6b;
+      --color-success: #51cf66;
+      --transition-speed: 0.3s;
+      --border-radius: 8px;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -19,8 +38,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
-      color: #fff;
+      background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-darker) 100%);
+      color: var(--color-text);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -28,6 +47,7 @@
       min-height: 100vh;
       padding: 20px;
       overflow-x: hidden;
+      line-height: 1.6;
     }
 
     header {
@@ -52,21 +72,22 @@
     }
 
     #auth-btn {
-      background: #7c3aed;
-      color: white;
+      background: var(--color-primary);
+      color: var(--color-text);
       border: none;
       padding: 10px 20px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
       font-size: 14px;
-      transition: all 0.3s ease;
+      transition: all var(--transition-speed) ease;
       white-space: nowrap;
     }
 
     #auth-btn:hover {
-      background: #9333ea;
+      background: var(--color-primary-hover);
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
     }
 
     #auth-btn:active {
@@ -74,17 +95,26 @@
     }
 
     .container {
-      background: #1a1a1a;
+      background: var(--color-bg-card);
       padding: 40px;
       border-radius: 16px;
       width: 100%;
       max-width: 600px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      border: 1px solid #333;
+      border: 1px solid var(--color-border);
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .subtitle {
-      color: #a0a0a0;
+      color: var(--color-text-secondary);
       margin-bottom: 30px;
       font-size: 16px;
       line-height: 1.5;
@@ -96,7 +126,7 @@
 
     label {
       display: block;
-      color: #a0a0a0;
+      color: var(--color-text-secondary);
       margin-bottom: 8px;
       font-size: 14px;
       font-weight: 500;
@@ -108,37 +138,41 @@
       width: 100%;
       padding: 14px;
       margin: 0;
-      border-radius: 8px;
-      border: 1px solid #333;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--color-border);
       background: #2a2a2a;
-      color: #fff;
+      color: var(--color-text);
       font-size: 16px;
-      transition: all 0.3s ease;
+      transition: all var(--transition-speed) ease;
       font-family: inherit;
+    }
+
+    input[type="text"]::placeholder {
+      color: #666;
     }
 
     input[type="text"]:focus,
     input[type="file"]:focus,
     select:focus {
       outline: none;
-      border-color: #7c3aed;
+      border-color: var(--color-primary);
       box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
       background: #333;
     }
 
     input[type="file"]::file-selector-button {
-      background: #7c3aed;
-      color: white;
+      background: var(--color-primary);
+      color: var(--color-text);
       border: none;
       padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      transition: background 0.3s ease;
+      transition: background var(--transition-speed) ease;
     }
 
     input[type="file"]::file-selector-button:hover {
-      background: #9333ea;
+      background: var(--color-primary-hover);
     }
 
     .button-group {
@@ -148,20 +182,20 @@
     }
 
     button {
-      flex: 1;
       padding: 14px;
-      border-radius: 8px;
+      border-radius: var(--border-radius);
       border: none;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all var(--transition-speed) ease;
       font-family: inherit;
     }
 
     #generateBtn {
-      background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
-      color: white;
+      flex: 1;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+      color: var(--color-text);
     }
 
     #generateBtn:hover:not(:disabled) {
@@ -181,36 +215,36 @@
 
     #loading {
       text-align: center;
-      color: #a78bfa;
+      color: var(--color-primary-light);
       margin: 20px 0;
       font-size: 14px;
       padding: 12px;
       background: rgba(167, 139, 250, 0.1);
-      border-radius: 8px;
-      border-left: 3px solid #a78bfa;
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--color-primary-light);
       display: none;
     }
 
     #loading.show {
       display: block;
-      animation: slideIn 0.3s ease;
+      animation: slideIn var(--transition-speed) ease;
     }
 
     #error {
       text-align: center;
-      color: #ff6b6b;
+      color: var(--color-error);
       margin: 20px 0;
       padding: 12px;
       background: rgba(255, 107, 107, 0.1);
-      border-radius: 8px;
-      border-left: 3px solid #ff6b6b;
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--color-error);
       font-size: 14px;
       display: none;
     }
 
     #error.show {
       display: block;
-      animation: slideIn 0.3s ease;
+      animation: slideIn var(--transition-speed) ease;
     }
 
     #result {
@@ -222,10 +256,11 @@
       width: 100%;
       max-width: 100%;
       border-radius: 12px;
-      border: 2px solid #7c3aed;
+      border: 2px solid var(--color-primary);
       margin-bottom: 20px;
       animation: fadeIn 0.5s ease-in;
       display: block;
+      background: #0a0a0a;
     }
 
     @keyframes fadeIn {
@@ -251,7 +286,7 @@
     }
 
     .file-name {
-      color: #a0a0a0;
+      color: var(--color-text-secondary);
       font-size: 12px;
       margin-top: 4px;
       min-height: 18px;
@@ -265,12 +300,13 @@
     }
 
     .actions button {
-      background: #333;
-      color: #fff;
+      background: var(--color-border);
+      color: var(--color-text);
       padding: 10px 16px;
       font-size: 14px;
       flex: 1;
       min-width: 100px;
+      border-radius: var(--border-radius);
     }
 
     .actions button:hover:not(:disabled) {
@@ -280,6 +316,24 @@
 
     .actions button:active:not(:disabled) {
       transform: translateY(0);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(167, 139, 250, 0.3);
+      border-top: 2px solid var(--color-primary-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     @media (max-width: 600px) {
@@ -321,8 +375,21 @@
 
     @media (prefers-color-scheme: dark) {
       body {
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+        background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-darker) 100%);
       }
+    }
+
+    /* Focus visible for better keyboard navigation */
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* Reduce opacity of disabled elements */
+    button:disabled {
+      opacity: 0.6;
     }
   </style>
 </head>
@@ -333,6 +400,7 @@
   </header>
 
   <div class="container">
+    <h2>Create Amazing AI Content</h2>
     <p class="subtitle">Generate stunning AI images & videos. Upload to transform or create from scratch.</p>
 
     <div class="input-group">
@@ -375,7 +443,10 @@
   </div>
 
   <script>
-    let clerk;
+    'use strict';
+
+    // ===== STATE =====
+    let clerk = null;
     let uploadedFile = null;
     let lastResultUrl = "";
     let isGenerating = false;
@@ -423,11 +494,16 @@
       }
     }
 
-    // Initialize Clerk
-    initClerk();
+    // Initialize Clerk on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initClerk);
+    } else {
+      initClerk();
+    }
 
     // ===== FILE UPLOAD HANDLER =====
-    document.getElementById("upload").addEventListener("change", (e) => {
+    const uploadInput = document.getElementById("upload");
+    uploadInput.addEventListener("change", (e) => {
       uploadedFile = null;
       const fileName = document.getElementById("file-name");
 
@@ -440,7 +516,8 @@
 
       // Validate file size
       if (file.size > CONFIG.MAX_FILE_SIZE) {
-        fileName.textContent = `❌ File too large (max 50 MB, got ${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileName.textContent = `❌ File too large (max 50 MB, got ${sizeMB} MB)`;
         e.target.value = "";
         return;
       }
@@ -504,6 +581,11 @@
         return;
       }
 
+      if (prompt.length > CONFIG.MAX_PROMPT_LENGTH) {
+        showError(`Prompt must be no more than ${CONFIG.MAX_PROMPT_LENGTH} characters`);
+        return;
+      }
+
       // Video requires login
       if (type === "video" && !clerk?.user) {
         clerk?.openSignIn({ afterSignInUrl: window.location.href });
@@ -518,7 +600,7 @@
       isGenerating = true;
       generateBtn.disabled = true;
       clearMessages();
-      showLoading(`Generating ${type === "video" ? "video" : "image"}... This may take 20-60 seconds. Please wait.`);
+      showLoading(`<span class="spinner"></span>Generating ${type === "video" ? "video" : "image"}... This may take 20-60 seconds.`);
       document.getElementById("result").innerHTML = "";
 
       // Setup abort controller for timeout
@@ -673,6 +755,7 @@
         navigator.clipboard
           .writeText(lastResultUrl)
           .then(() => showLoading("✅ Link copied to clipboard!"))
+          .then(() => setTimeout(() => clearLoading(), 2000))
           .catch(err => {
             console.error("Copy error:", err);
             showError("Failed to copy link. Please try again.");
@@ -683,7 +766,7 @@
     // ===== UI HELPERS =====
     function showLoading(message) {
       const el = document.getElementById("loading");
-      el.textContent = message;
+      el.innerHTML = message;
       el.classList.add("show");
       clearError();
     }
