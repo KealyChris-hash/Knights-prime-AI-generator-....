@@ -4,12 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Knights Prime - AI Image & Video Generator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>⚔️</text></svg>" />
   <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
@@ -22,6 +27,7 @@
       justify-content: center;
       min-height: 100vh;
       padding: 20px;
+      overflow-x: hidden;
     }
 
     header {
@@ -32,6 +38,7 @@
       max-width: 600px;
       margin-bottom: 40px;
       padding: 0 20px;
+      gap: 20px;
     }
 
     header h1 {
@@ -40,6 +47,8 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     #auth-btn {
@@ -51,11 +60,17 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 14px;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
+      white-space: nowrap;
     }
 
     #auth-btn:hover {
       background: #9333ea;
+      transform: translateY(-2px);
+    }
+
+    #auth-btn:active {
+      transform: translateY(0);
     }
 
     .container {
@@ -72,10 +87,19 @@
       color: #a0a0a0;
       margin-bottom: 30px;
       font-size: 16px;
+      line-height: 1.5;
     }
 
     .input-group {
       margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #a0a0a0;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
     }
 
     input[type="text"],
@@ -83,13 +107,14 @@
     select {
       width: 100%;
       padding: 14px;
-      margin: 8px 0;
+      margin: 0;
       border-radius: 8px;
       border: 1px solid #333;
       background: #2a2a2a;
       color: #fff;
       font-size: 16px;
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
+      font-family: inherit;
     }
 
     input[type="text"]:focus,
@@ -97,18 +122,29 @@
     select:focus {
       outline: none;
       border-color: #7c3aed;
-      box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+      box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+      background: #333;
     }
 
-    input[type="file"] {
-      padding: 10px;
+    input[type="file"]::file-selector-button {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: #9333ea;
     }
 
     .button-group {
       display: flex;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 24px;
     }
 
     button {
@@ -120,6 +156,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
+      font-family: inherit;
     }
 
     #generateBtn {
@@ -130,6 +167,10 @@
     #generateBtn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+    }
+
+    #generateBtn:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     button:disabled {
@@ -143,6 +184,16 @@
       color: #a78bfa;
       margin: 20px 0;
       font-size: 14px;
+      padding: 12px;
+      background: rgba(167, 139, 250, 0.1);
+      border-radius: 8px;
+      border-left: 3px solid #a78bfa;
+      display: none;
+    }
+
+    #loading.show {
+      display: block;
+      animation: slideIn 0.3s ease;
     }
 
     #error {
@@ -152,7 +203,14 @@
       padding: 12px;
       background: rgba(255, 107, 107, 0.1);
       border-radius: 8px;
+      border-left: 3px solid #ff6b6b;
       font-size: 14px;
+      display: none;
+    }
+
+    #error.show {
+      display: block;
+      animation: slideIn 0.3s ease;
     }
 
     #result {
@@ -167,6 +225,7 @@
       border: 2px solid #7c3aed;
       margin-bottom: 20px;
       animation: fadeIn 0.5s ease-in;
+      display: block;
     }
 
     @keyframes fadeIn {
@@ -180,10 +239,29 @@
       }
     }
 
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .file-name {
+      color: #a0a0a0;
+      font-size: 12px;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
     .actions {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      margin-top: 16px;
     }
 
     .actions button {
@@ -200,16 +278,15 @@
       transform: translateY(-2px);
     }
 
-    .file-name {
-      color: #a0a0a0;
-      font-size: 12px;
-      margin-top: 4px;
+    .actions button:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     @media (max-width: 600px) {
       header {
         flex-direction: column;
         gap: 15px;
+        margin-bottom: 30px;
       }
 
       header h1 {
@@ -227,51 +304,73 @@
       .actions {
         flex-direction: column;
       }
+
+      .actions button {
+        width: 100%;
+      }
+    }
+
+    /* Accessibility improvements */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+      }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>⚔️ Knights Prime AI</h1>
-    <button id="auth-btn">Login / Sign up</button>
+    <button id="auth-btn" aria-label="Authentication button">Login / Sign up</button>
   </header>
 
   <div class="container">
     <p class="subtitle">Generate stunning AI images & videos. Upload to transform or create from scratch.</p>
 
     <div class="input-group">
+      <label for="prompt">Describe what you want to create</label>
       <input
         id="prompt"
         type="text"
         placeholder="Ex: cyberpunk knight, anime style, futuristic armor"
         maxlength="500"
+        aria-label="Prompt input"
       />
     </div>
 
     <div class="input-group">
-      <label for="upload" style="display: block; color: #a0a0a0; margin-bottom: 8px; font-size: 14px;">
-        Upload Image (Optional)
-      </label>
-      <input id="upload" type="file" accept="image/*" />
-      <div id="file-name" class="file-name"></div>
+      <label for="upload">Upload Image or Video (Optional)</label>
+      <input 
+        id="upload" 
+        type="file" 
+        accept="image/*,video/*"
+        aria-label="File upload input"
+      />
+      <div id="file-name" class="file-name" role="status" aria-live="polite"></div>
     </div>
 
     <div class="input-group">
-      <label for="type" style="display: block; color: #a0a0a0; margin-bottom: 8px; font-size: 14px;">
-        Generation Type
-      </label>
-      <select id="type">
+      <label for="type">Generation Type</label>
+      <select id="type" aria-label="Generation type selector">
         <option value="image">📷 Generate Image</option>
         <option value="video">🎬 Generate Video</option>
       </select>
     </div>
 
     <div class="button-group">
-      <button id="generateBtn">Generate ✨</button>
+      <button id="generateBtn" aria-label="Generate content button">Generate ✨</button>
     </div>
 
-    <div id="loading"></div>
-    <div id="error"></div>
+    <div id="loading" role="status" aria-live="polite"></div>
+    <div id="error" role="alert" aria-live="assertive"></div>
     <div id="result"></div>
   </div>
 
@@ -280,80 +379,108 @@
     let uploadedFile = null;
     let lastResultUrl = "";
     let isGenerating = false;
+    let controller = null;
+
+    const CONFIG = {
+      MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
+      MIN_PROMPT_LENGTH: 3,
+      MAX_PROMPT_LENGTH: 500,
+      GENERATION_TIMEOUT: 120000, // 2 minutes
+    };
 
     // ===== CLERK AUTHENTICATION =====
     async function initClerk() {
-      const res = await fetch("/.netlify/functions/get-key");
-      const data = await res.json();
-      clerk = window.Clerk;
+      try {
+        const res = await fetch("/.netlify/functions/get-key");
+        if (!res.ok) throw new Error("Failed to get Clerk key");
+        
+        const data = await res.json();
+        clerk = window.Clerk;
 
-      if (!clerk) {
-        console.error("Clerk failed to load");
-        return;
-      }
-
-      await clerk.load();
-
-      const authBtn = document.getElementById("auth-btn");
-      const updateAuthBtn = () => {
-        if (clerk.user) {
-          authBtn.innerText = "Logout";
-          authBtn.onclick = () => clerk.signOut();
-        } else {
-          authBtn.innerText = "Login / Sign up";
-          authBtn.onclick = () => clerk.openSignIn();
+        if (!clerk) {
+          console.error("Clerk failed to load");
+          return;
         }
-      };
 
-      updateAuthBtn();
-      clerk.addListener(({ user }) => updateAuthBtn());
+        await clerk.load();
+
+        const authBtn = document.getElementById("auth-btn");
+        const updateAuthBtn = () => {
+          if (clerk.user) {
+            authBtn.innerText = `${clerk.user.firstName || "User"} - Logout`;
+            authBtn.onclick = () => clerk.signOut();
+          } else {
+            authBtn.innerText = "Login / Sign up";
+            authBtn.onclick = () => clerk.openSignIn();
+          }
+        };
+
+        updateAuthBtn();
+        clerk.addListener(({ user }) => updateAuthBtn());
+      } catch (err) {
+        console.error("Clerk init error:", err);
+        showError("Authentication service unavailable. Some features may be limited.");
+      }
     }
 
     // Initialize Clerk
-    initClerk().catch(err => console.error("Clerk init error:", err));
+    initClerk();
 
     // ===== FILE UPLOAD HANDLER =====
     document.getElementById("upload").addEventListener("change", (e) => {
-      uploadedFile = e.target.files[0];
+      uploadedFile = null;
       const fileName = document.getElementById("file-name");
 
-      if (uploadedFile) {
-        const sizeMB = (uploadedFile.size / (1024 * 1024)).toFixed(2);
-        fileName.textContent = `✓ ${uploadedFile.name} (${sizeMB} MB)`;
-
-        // Validate file size (max 50MB)
-        if (uploadedFile.size > 50 * 1024 * 1024) {
-          fileName.textContent = "❌ File too large (max 50 MB)";
-          uploadedFile = null;
-        }
-
-        // Validate file type
-        if (!uploadedFile.type.startsWith("image/")) {
-          fileName.textContent = "❌ Only image files are supported";
-          uploadedFile = null;
-        }
-      } else {
+      if (e.target.files.length === 0) {
         fileName.textContent = "";
+        return;
       }
+
+      const file = e.target.files[0];
+
+      // Validate file size
+      if (file.size > CONFIG.MAX_FILE_SIZE) {
+        fileName.textContent = `❌ File too large (max 50 MB, got ${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        e.target.value = "";
+        return;
+      }
+
+      // Validate file type
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+
+      if (!isImage && !isVideo) {
+        fileName.textContent = "❌ Only image or video files are supported";
+        e.target.value = "";
+        return;
+      }
+
+      uploadedFile = file;
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      const icon = isImage ? "🖼️" : "🎥";
+      fileName.textContent = `✓ ${icon} ${file.name} (${sizeMB} MB)`;
     });
 
     // ===== SHOW RESULT WITH ACTIONS =====
     function showResult(type, url) {
       lastResultUrl = url;
-      const media =
-        type === "image"
-          ? `<img src="${url}" alt="Generated content" />`
-          : `<video controls autoplay loop style="width:100%; border-radius:12px; border:2px solid #7c3aed;">
-              <source src="${url}" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>`;
+      let media;
+      
+      if (type === "image") {
+        media = `<img src="${url}" alt="Generated image" loading="lazy" />`;
+      } else {
+        media = `<video controls autoplay loop style="width:100%; border-radius:12px; border:2px solid #7c3aed;">
+                   <source src="${url}" type="video/mp4" />
+                   Your browser does not support the video tag.
+                 </video>`;
+      }
 
       document.getElementById("result").innerHTML = `
         ${media}
         <div class="actions">
-          <button onclick="download()">⬇️ Download</button>
-          <button onclick="share()">📤 Share</button>
-          <button onclick="post()">⏫ Post on Postbook</button>
+          <button onclick="download()" aria-label="Download generated content">⬇️ Download</button>
+          <button onclick="share()" aria-label="Share generated content">📤 Share</button>
+          <button onclick="post()" aria-label="Post to Postbook">⏫ Postbook</button>
         </div>
       `;
 
@@ -372,14 +499,14 @@
         return;
       }
 
-      if (prompt.length < 3) {
-        showError("Prompt must be at least 3 characters");
+      if (prompt.length < CONFIG.MIN_PROMPT_LENGTH) {
+        showError(`Prompt must be at least ${CONFIG.MIN_PROMPT_LENGTH} characters`);
         return;
       }
 
       // Video requires login
-      if (type === "video" && !clerk.user) {
-        clerk.openSignIn({ afterSignInUrl: window.location.href });
+      if (type === "video" && !clerk?.user) {
+        clerk?.openSignIn({ afterSignInUrl: window.location.href });
         return;
       }
 
@@ -391,10 +518,12 @@
       isGenerating = true;
       generateBtn.disabled = true;
       clearMessages();
-      showLoading(
-        `Generating ${type}... This may take 20-60 seconds. Please wait.`
-      );
+      showLoading(`Generating ${type === "video" ? "video" : "image"}... This may take 20-60 seconds. Please wait.`);
       document.getElementById("result").innerHTML = "";
+
+      // Setup abort controller for timeout
+      controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), CONFIG.GENERATION_TIMEOUT);
 
       try {
         let fileBase64 = null;
@@ -408,8 +537,6 @@
             mimeType = uploadedFile.type;
           } catch (err) {
             showError("Failed to process uploaded file. Please try again.");
-            isGenerating = false;
-            generateBtn.disabled = false;
             return;
           }
         }
@@ -426,12 +553,14 @@
             fileBase64,
             mimeType,
           }),
+          signal: controller.signal,
         });
 
+        clearTimeout(timeoutId);
+
         if (!res.ok) {
-          throw new Error(
-            `Server error: ${res.status} ${res.statusText}`
-          );
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Server error: ${res.status} ${res.statusText}`);
         }
 
         const data = await res.json();
@@ -448,20 +577,25 @@
 
         showResult(type, data.url);
       } catch (err) {
-        console.error("Generate error:", err);
-        showError(
-          `Failed to generate content: ${err.message || "Unknown error"}`
-        );
+        clearTimeout(timeoutId);
+        
+        if (err.name === "AbortError") {
+          showError("Generation timeout. The AI took too long. Please try again.");
+        } else {
+          console.error("Generate error:", err);
+          showError(`Failed to generate content: ${err.message || "Unknown error"}`);
+        }
       } finally {
         isGenerating = false;
         generateBtn.disabled = false;
+        controller = null;
       }
     }
 
     // ===== POST TO POSTBOOK =====
     async function post() {
-      if (!clerk.user) {
-        clerk.openSignIn({ afterSignInUrl: window.location.href });
+      if (!clerk?.user) {
+        clerk?.openSignIn({ afterSignInUrl: window.location.href });
         return;
       }
 
@@ -487,6 +621,10 @@
           }),
         });
 
+        if (!res.ok) {
+          throw new Error(`Server error: ${res.status}`);
+        }
+
         const data = await res.json();
 
         if (data.error) {
@@ -494,8 +632,8 @@
           return;
         }
 
-        alert("✅ Posted to Postbook!");
-        clearMessages();
+        showLoading("✅ Posted to Postbook!");
+        setTimeout(() => clearLoading(), 3000);
       } catch (err) {
         console.error("Post error:", err);
         showError("Failed to post. Check console for details.");
@@ -515,7 +653,7 @@
         document.body.removeChild(a);
       } catch (err) {
         console.error("Download error:", err);
-        showError("Failed to download. Please try right-clicking the media.");
+        showError("Failed to download. Please try right-clicking the media and selecting 'Save As'.");
       }
     }
 
@@ -534,22 +672,26 @@
       } else {
         navigator.clipboard
           .writeText(lastResultUrl)
-          .then(() => alert("✅ Link copied to clipboard!"))
+          .then(() => showLoading("✅ Link copied to clipboard!"))
           .catch(err => {
             console.error("Copy error:", err);
-            showError("Failed to copy link");
+            showError("Failed to copy link. Please try again.");
           });
       }
     }
 
     // ===== UI HELPERS =====
     function showLoading(message) {
-      document.getElementById("loading").innerText = message;
+      const el = document.getElementById("loading");
+      el.textContent = message;
+      el.classList.add("show");
       clearError();
     }
 
     function showError(message) {
-      document.getElementById("error").innerText = "❌ " + message;
+      const el = document.getElementById("error");
+      el.textContent = "❌ " + message;
+      el.classList.add("show");
       clearLoading();
     }
 
@@ -559,24 +701,36 @@
     }
 
     function clearLoading() {
-      document.getElementById("loading").innerText = "";
+      const el = document.getElementById("loading");
+      el.classList.remove("show");
+      el.textContent = "";
     }
 
     function clearError() {
-      document.getElementById("error").innerText = "";
+      const el = document.getElementById("error");
+      el.classList.remove("show");
+      el.textContent = "";
     }
 
     // ===== EVENT LISTENERS =====
     document.getElementById("generateBtn").addEventListener("click", generate);
 
     // Allow Enter key to generate
-    document
-      .getElementById("prompt")
-      .addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && !isGenerating) {
-          generate();
-        }
-      });
+    document.getElementById("prompt").addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !isGenerating && !e.shiftKey) {
+        e.preventDefault();
+        generate();
+      }
+    });
+
+    // Cleanup on page unload
+    window.addEventListener("beforeunload", (e) => {
+      if (isGenerating) {
+        controller?.abort();
+        e.preventDefault();
+        e.returnValue = "Generation in progress. Are you sure you want to leave?";
+      }
+    });
   </script>
 </body>
 </html>
