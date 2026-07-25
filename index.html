@@ -4,103 +4,579 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Knights Prime - AI Image & Video Generator</title>
-  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://YOUR_CLERK_DOMAIN.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
+  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #0a0a0a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 40px; }
-    h1 { color: #FFD700; }
-    .card { background: #1a1a1a; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; text-align: center; }
-    input, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; font-size: 16px; }
-    input { background: #2a2a2a; color: #fff; }
-    button { background: #FFD700; color: #000; font-weight: bold; cursor: pointer; }
-    button:disabled { background: #555; cursor: not-allowed; }
-    #result img, #result video { width: 100%; border-radius: 12px; margin-top: 20px; }
-    #clerk { margin-bottom: 20px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 40px;
+      padding: 0 20px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #auth-btn {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    #auth-btn:hover {
+      background: #9333ea;
+    }
+
+    .container {
+      background: #1a1a1a;
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid #333;
+    }
+
+    .subtitle {
+      color: #a0a0a0;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="file"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #7c3aed;
+      box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+    }
+
+    input[type="file"] {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #generateBtn {
+      background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+      color: white;
+    }
+
+    #generateBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+    }
+
+    button:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    #loading {
+      text-align: center;
+      color: #a78bfa;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    #error {
+      text-align: center;
+      color: #ff6b6b;
+      margin: 20px 0;
+      padding: 12px;
+      background: rgba(255, 107, 107, 0.1);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    #result {
+      margin-top: 30px;
+    }
+
+    #result img,
+    #result video {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 12px;
+      border: 2px solid #7c3aed;
+      margin-bottom: 20px;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .actions button {
+      background: #333;
+      color: #fff;
+      padding: 10px 16px;
+      font-size: 14px;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    .actions button:hover:not(:disabled) {
+      background: #555;
+      transform: translateY(-2px);
+    }
+
+    .file-name {
+      color: #a0a0a0;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .container {
+        padding: 25px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>⚔️ Knights Prime AI Generator</h1>
-  
-  <div class="card">
-    <div id="clerk"></div>
-    
-    <div id="app" style="display:none;">
-      <input id="prompt" type="text" placeholder="Describe your knight..." />
-      <button id="imageBtn">Generate Image</button>
-      <button id="videoBtn">Generate Video</button>
-      <div id="status"></div>
-      <div id="result"></div>
+  <header>
+    <h1>⚔️ Knights Prime AI</h1>
+    <button id="auth-btn">Login / Sign up</button>
+  </header>
+
+  <div class="container">
+    <p class="subtitle">Generate stunning AI images & videos. Upload to transform or create from scratch.</p>
+
+    <div class="input-group">
+      <input
+        id="prompt"
+        type="text"
+        placeholder="Ex: cyberpunk knight, anime style, futuristic armor"
+        maxlength="500"
+      />
     </div>
+
+    <div class="input-group">
+      <label for="upload" style="display: block; color: #a0a0a0; margin-bottom: 8px; font-size: 14px;">
+        Upload Image (Optional)
+      </label>
+      <input id="upload" type="file" accept="image/*" />
+      <div id="file-name" class="file-name"></div>
+    </div>
+
+    <div class="input-group">
+      <label for="type" style="display: block; color: #a0a0a0; margin-bottom: 8px; font-size: 14px;">
+        Generation Type
+      </label>
+      <select id="type">
+        <option value="image">📷 Generate Image</option>
+        <option value="video">🎬 Generate Video</option>
+      </select>
+    </div>
+
+    <div class="button-group">
+      <button id="generateBtn">Generate ✨</button>
+    </div>
+
+    <div id="loading"></div>
+    <div id="error"></div>
+    <div id="result"></div>
   </div>
 
-  <script type="module">
-    // ===== PASTE YOUR KEYS HERE =====
-    const CLERK_PUBLISHABLE_KEY = "pk_test_ZmxlZXQtcGlrYS01NC5jbGVyay5hY2NvdW50cy5kZXYk";
-    const FAL_KEY = "b29be3dc-fb99-46b2-9db2-433962616b44:39f7fdb20111bbb472c3c6d1b680ac0c"; // Must be Browser key
+  <script>
+    let clerk;
+    let uploadedFile = null;
+    let lastResultUrl = "";
+    let isGenerating = false;
 
-    // ===== CLERK LOGIN =====
-    await Clerk.load();
-    const clerkDiv = document.getElementById("clerk");
-    const appDiv = document.getElementById("app");
+    // ===== CLERK AUTHENTICATION =====
+    async function initClerk() {
+      const res = await fetch("/.netlify/functions/get-key");
+      const data = await res.json();
+      clerk = window.Clerk;
 
-    if (Clerk.user) {
-      clerkDiv.style.display = "none";
-      appDiv.style.display = "block";
-    } else {
-      Clerk.mountSignIn(clerkDiv);
+      if (!clerk) {
+        console.error("Clerk failed to load");
+        return;
+      }
+
+      await clerk.load();
+
+      const authBtn = document.getElementById("auth-btn");
+      const updateAuthBtn = () => {
+        if (clerk.user) {
+          authBtn.innerText = "Logout";
+          authBtn.onclick = () => clerk.signOut();
+        } else {
+          authBtn.innerText = "Login / Sign up";
+          authBtn.onclick = () => clerk.openSignIn();
+        }
+      };
+
+      updateAuthBtn();
+      clerk.addListener(({ user }) => updateAuthBtn());
     }
 
-    Clerk.addListener(({ user }) => {
-      if (user) {
-        clerkDiv.style.display = "none";
-        appDiv.style.display = "block";
+    // Initialize Clerk
+    initClerk().catch(err => console.error("Clerk init error:", err));
+
+    // ===== FILE UPLOAD HANDLER =====
+    document.getElementById("upload").addEventListener("change", (e) => {
+      uploadedFile = e.target.files[0];
+      const fileName = document.getElementById("file-name");
+
+      if (uploadedFile) {
+        const sizeMB = (uploadedFile.size / (1024 * 1024)).toFixed(2);
+        fileName.textContent = `✓ ${uploadedFile.name} (${sizeMB} MB)`;
+
+        // Validate file size (max 50MB)
+        if (uploadedFile.size > 50 * 1024 * 1024) {
+          fileName.textContent = "❌ File too large (max 50 MB)";
+          uploadedFile = null;
+        }
+
+        // Validate file type
+        if (!uploadedFile.type.startsWith("image/")) {
+          fileName.textContent = "❌ Only image files are supported";
+          uploadedFile = null;
+        }
+      } else {
+        fileName.textContent = "";
       }
     });
 
-    // ===== GENERATE FUNCTION =====
-    async function generate(type) {
-      const prompt = document.getElementById("prompt").value;
-      if (!prompt) return alert("Please enter a prompt");
-      
-      btns.forEach(b => b.disabled = true);
-      status.innerText = `Generating ${type}... 30-60s`;
-      result.innerHTML = "";
+    // ===== SHOW RESULT WITH ACTIONS =====
+    function showResult(type, url) {
+      lastResultUrl = url;
+      const media =
+        type === "image"
+          ? `<img src="${url}" alt="Generated content" />`
+          : `<video controls autoplay loop style="width:100%; border-radius:12px; border:2px solid #7c3aed;">
+              <source src="${url}" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>`;
 
-      let endpoint = type === "image" 
-        ? "https://queue.fal.run/fal-ai/flux/schnell"
-        : "https://queue.fal.run/fal-ai/kling-video/v1.6/standard/text-to-video";
+      document.getElementById("result").innerHTML = `
+        ${media}
+        <div class="actions">
+          <button onclick="download()">⬇️ Download</button>
+          <button onclick="share()">📤 Share</button>
+          <button onclick="post()">⏫ Post on Postbook</button>
+        </div>
+      `;
 
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Authorization": `Key ${FAL_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: prompt
-          })
-        });
-
-        const data = await response.json();
-        status.innerText = "Done!";
-        
-        if(type === "image"){
-          result.innerHTML = `<img src="${data.images[0].url}" />`;
-        } else {
-          result.innerHTML = `<video src="${data.video.url}" controls autoplay loop></video>`;
-        }
-      } catch (err) {
-        status.innerText = "Error: " + err.message;
-      }
-      btns.forEach(b => b.disabled = false);
+      clearMessages();
     }
 
-    const status = document.getElementById("status");
-    const result = document.getElementById("result");
-    const btns = [document.getElementById("imageBtn"), document.getElementById("videoBtn")];
-    
-    document.getElementById("imageBtn").onclick = () => generate("image");
-    document.getElementById("videoBtn").onclick = () => generate("video");
+    // ===== MAIN GENERATE FUNCTION =====
+    async function generate() {
+      const prompt = document.getElementById("prompt").value.trim();
+      const type = document.getElementById("type").value;
+      const generateBtn = document.getElementById("generateBtn");
+
+      // Validation
+      if (!prompt) {
+        showError("Please enter a prompt first");
+        return;
+      }
+
+      if (prompt.length < 3) {
+        showError("Prompt must be at least 3 characters");
+        return;
+      }
+
+      // Video requires login
+      if (type === "video" && !clerk.user) {
+        clerk.openSignIn({ afterSignInUrl: window.location.href });
+        return;
+      }
+
+      // Prevent duplicate requests
+      if (isGenerating) {
+        return;
+      }
+
+      isGenerating = true;
+      generateBtn.disabled = true;
+      clearMessages();
+      showLoading(
+        `Generating ${type}... This may take 20-60 seconds. Please wait.`
+      );
+      document.getElementById("result").innerHTML = "";
+
+      try {
+        let fileBase64 = null;
+        let mimeType = null;
+
+        // Convert uploaded file to base64
+        if (uploadedFile) {
+          try {
+            const buffer = await uploadedFile.arrayBuffer();
+            fileBase64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+            mimeType = uploadedFile.type;
+          } catch (err) {
+            showError("Failed to process uploaded file. Please try again.");
+            isGenerating = false;
+            generateBtn.disabled = false;
+            return;
+          }
+        }
+
+        // Call backend API
+        const res = await fetch("/.netlify/functions/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt,
+            type,
+            fileBase64,
+            mimeType,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(
+            `Server error: ${res.status} ${res.statusText}`
+          );
+        }
+
+        const data = await res.json();
+
+        if (data.error) {
+          showError(`Generation failed: ${data.error}`);
+          return;
+        }
+
+        if (!data.url) {
+          showError("No output URL received from server");
+          return;
+        }
+
+        showResult(type, data.url);
+      } catch (err) {
+        console.error("Generate error:", err);
+        showError(
+          `Failed to generate content: ${err.message || "Unknown error"}`
+        );
+      } finally {
+        isGenerating = false;
+        generateBtn.disabled = false;
+      }
+    }
+
+    // ===== POST TO POSTBOOK =====
+    async function post() {
+      if (!clerk.user) {
+        clerk.openSignIn({ afterSignInUrl: window.location.href });
+        return;
+      }
+
+      if (!lastResultUrl) {
+        showError("No content to post. Generate something first.");
+        return;
+      }
+
+      try {
+        const token = await clerk.session.getToken();
+
+        const res = await fetch("/.netlify/functions/post-to-postbook", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: clerk.user.id,
+            mediaUrl: lastResultUrl,
+            prompt: document.getElementById("prompt").value,
+            mediaType: document.getElementById("type").value,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          showError(`Failed to post: ${data.error}`);
+          return;
+        }
+
+        alert("✅ Posted to Postbook!");
+        clearMessages();
+      } catch (err) {
+        console.error("Post error:", err);
+        showError("Failed to post. Check console for details.");
+      }
+    }
+
+    // ===== DOWNLOAD FUNCTION =====
+    function download() {
+      if (!lastResultUrl) return;
+
+      try {
+        const a = document.createElement("a");
+        a.href = lastResultUrl;
+        a.download = `knights-prime-${Date.now()}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (err) {
+        console.error("Download error:", err);
+        showError("Failed to download. Please try right-clicking the media.");
+      }
+    }
+
+    // ===== SHARE FUNCTION =====
+    function share() {
+      if (!lastResultUrl) return;
+
+      if (navigator.share) {
+        navigator
+          .share({
+            title: "Knights Prime AI",
+            text: "Check out this AI-generated content!",
+            url: lastResultUrl,
+          })
+          .catch(err => console.log("Share cancelled:", err));
+      } else {
+        navigator.clipboard
+          .writeText(lastResultUrl)
+          .then(() => alert("✅ Link copied to clipboard!"))
+          .catch(err => {
+            console.error("Copy error:", err);
+            showError("Failed to copy link");
+          });
+      }
+    }
+
+    // ===== UI HELPERS =====
+    function showLoading(message) {
+      document.getElementById("loading").innerText = message;
+      clearError();
+    }
+
+    function showError(message) {
+      document.getElementById("error").innerText = "❌ " + message;
+      clearLoading();
+    }
+
+    function clearMessages() {
+      clearLoading();
+      clearError();
+    }
+
+    function clearLoading() {
+      document.getElementById("loading").innerText = "";
+    }
+
+    function clearError() {
+      document.getElementById("error").innerText = "";
+    }
+
+    // ===== EVENT LISTENERS =====
+    document.getElementById("generateBtn").addEventListener("click", generate);
+
+    // Allow Enter key to generate
+    document
+      .getElementById("prompt")
+      .addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !isGenerating) {
+          generate();
+        }
+      });
   </script>
 </body>
 </html>
