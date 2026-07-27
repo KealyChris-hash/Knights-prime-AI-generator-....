@@ -462,7 +462,7 @@
     // ===== CLERK AUTHENTICATION =====
     async function initClerk() {
       try {
-        const res = await fetch("/.netlify/functions/get-key");
+        const res = await fetch("/function/get-key");
         if (!res.ok) throw new Error("Failed to get Clerk key");
         
         const data = await res.json();
@@ -624,7 +624,7 @@
         }
 
         // Call backend API
-        const res = await fetch("/.netlify/functions/generate", {
+        const res = await fetch("/function/generate", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -689,7 +689,7 @@
       try {
         const token = await clerk.session.getToken();
 
-        const res = await fetch("/.netlify/functions/post-to-postbook", {
+        const res = await fetch("/function/post-to-postbook", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
