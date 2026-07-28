@@ -8,7 +8,7 @@
   <title>Knights Prime - AI Image & Video Generator</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>⚔️</text></svg>" />
   <link rel="canonical" href="https://knightsprime.ai/" />
-  <script async crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_YXBwYXJlbnQtd2lsZGNhdC04My5jbGVyay5hY2NvdW50cy5kZXYk" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
   <style>
     :root {
       --color-primary: #7c3aed;
@@ -69,6 +69,12 @@
       background-clip: text;
       font-weight: 700;
       white-space: nowrap;
+      cursor: pointer;
+      transition: transform var(--transition-speed) ease;
+    }
+
+    header h1:hover {
+      transform: scale(1.05);
     }
 
     #auth-btn {
@@ -395,7 +401,7 @@
 </head>
 <body>
   <header>
-    <h1>⚔️ Knights Prime AI</h1>
+    <h1 id="home-link">⚔️ Knights Prime AI</h1>
     <button id="auth-btn" aria-label="Authentication button">Login / Sign up</button>
   </header>
 
@@ -462,14 +468,11 @@
     // ===== CLERK AUTHENTICATION =====
     async function initClerk() {
       try {
-        const res = await fetch("/function/get-key");
-        if (!res.ok) throw new Error("Failed to get Clerk key");
-        
-        const data = await res.json();
         clerk = window.Clerk;
 
         if (!clerk) {
           console.error("Clerk failed to load");
+          showError("Authentication service unavailable");
           return;
         }
 
@@ -487,10 +490,12 @@
         };
 
         updateAuthBtn();
-        clerk.addListener(({ user }) => updateAuthBtn());
+        
+        if (typeof clerk.addListener === 'function') {
+          clerk.addListener(({ user }) => updateAuthBtn());
+        }
       } catch (err) {
         console.error("Clerk init error:", err);
-        showError("Authentication service unavailable. Some features may be limited.");
       }
     }
 
@@ -624,7 +629,7 @@
         }
 
         // Call backend API
-        const res = await fetch("/function/generate", {
+        const res = await fetch("/api/generate", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -689,7 +694,7 @@
       try {
         const token = await clerk.session.getToken();
 
-        const res = await fetch("/function/post-to-postbook", {
+        const res = await fetch("/api/post-to-postbook", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -794,6 +799,11 @@
       el.classList.remove("show");
       el.textContent = "";
     }
+
+    // ===== NAVIGATION =====
+    document.getElementById("home-link").addEventListener("click", () => {
+      window.location.href = "/";
+    });
 
     // ===== EVENT LISTENERS =====
     document.getElementById("generateBtn").addEventListener("click", generate);
