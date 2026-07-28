@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Postbook - Share your AI-generated content" />
+  <meta name="theme-color" content="#7c3aed" />
+  <title>Postbook - Knights Prime AI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>📖</text></svg>" />
+  <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_YXBwYXJlbnQtd2lsZGNhdC04My5jbGVyay5hY2NvdW50cy5kZXYk" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+  <style>
+    :root {
+      --color-primary: #7c3aed;
+      --color-primary-hover: #9333ea;
+      --color-primary-light: #a78bfa;
+      --color-bg-dark: #0a0a0a;
+      --color-bg-darker: #1a0a2e;
+      --color-bg-card: #1a1a1a;
+      --color-border: #333;
+      --color-text: #fff;
+      --color-text-secondary: #a0a0a0;
+      --color-error: #ff6b6b;
+      --color-success: #51cf66;
+      --transition-speed: 0.3s;
+      --border-radius: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-bg-darker) 100%);
+      color: var(--color-text);
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    header h1 {
+      font-size: 28px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform var(--transition-speed) ease;
+      white-space: nowrap;
+    }
+
+    header h1:hover {
+      transform: scale(1.05);
+    }
+
+    header .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    header button {
+      background: var(--color-primary);
+      color: var(--color-text);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all var(--transition-speed) ease;
+    }
+
+    header button:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 30px;
+      color: var(--color-text);
+    }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .post-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all var(--transition-speed) ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .post-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+      border-color: var(--color-primary);
+    }
+
+    .post-media {
+      width: 100%;
+      height: 250px;
+      background: #0a0a0a;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .post-media img,
+    .post-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .post-content {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .post-author {
+      font-weight: 600;
+      color: var(--color-primary-light);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .post-text {
+      color: var(--color-text-secondary);
+      font-size: 14px;
+      margin-bottom: 12px;
+      flex: 1;
+    }
+
+    .post-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      border-top: 1px solid var(--color-border);
+      padding-top: 12px;
+    }
+
+    .post-actions button {
+      flex: 1;
+      background: var(--color-border);
+      color: var(--color-text);
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all var(--transition-speed) ease;
+    }
+
+    .post-actions button:hover {
+      background: #555;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: var(--color-text-secondary);
+    }
+
+    .empty-state p {
+      color: var(--color-text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .empty-state button {
+      background: var(--color-primary);
+      color: var(--color-text);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-speed) ease;
+    }
+
+    .empty-state button:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--color-text-secondary);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(167, 139, 250, 0.3);
+      border-top: 3px solid var(--color-primary-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .posts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header .nav-buttons {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      header button {
+        flex: 1;
+        min-width: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="home-link">📖 Postbook</h1>
+    <div class="nav-buttons">
+      <button id="home-btn" onclick="window.location.href='/'">🏠 Home</button>
+      <button id="auth-btn" aria-label="Authentication button">Login / Sign up</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <h2>Recent Posts</h2>
+    <div id="posts-container">
+      <div class="loading">
+        <span class="spinner"></span>Loading posts...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    let clerk = null;
+
+    // ===== CLERK AUTHENTICATION =====
+    async function initClerk() {
+      try {
+        clerk = window.Clerk;
+
+        if (!clerk) {
+          console.error("Clerk failed to load");
+          return;
+        }
+
+        await clerk.load();
+
+        const authBtn = document.getElementById("auth-btn");
+        const updateAuthBtn = () => {
+          if (clerk.user) {
+            authBtn.innerText = `${clerk.user.firstName || "User"} - Logout`;
+            authBtn.onclick = () => clerk.signOut();
+          } else {
+            authBtn.innerText = "Login / Sign up";
+            authBtn.onclick = () => clerk.openSignIn();
+          }
+        };
+
+        updateAuthBtn();
+        
+        if (typeof clerk.addListener === 'function') {
+          clerk.addListener(({ user }) => updateAuthBtn());
+        }
+
+        // Load posts after auth is initialized
+        loadPosts();
+      } catch (err) {
+        console.error("Clerk init error:", err);
+        loadPosts();
+      }
+    }
+
+    // ===== LOAD POSTS =====
+    async function loadPosts() {
+      const container = document.getElementById("posts-container");
+
+      try {
+        const res = await fetch("/api/posts");
+        
+        if (!res.ok) {
+          throw new Error(`Failed to load posts: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const posts = data.posts || [];
+
+        if (posts.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h3>No posts yet</h3>
+              <p>Start creating and sharing your AI-generated content!</p>
+              <button onclick="window.location.href='/'">Create Content</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="posts-grid">
+            ${posts.map(post => renderPost(post)).join('')}
+          </div>
+        `;
+      } catch (err) {
+        console.error("Error loading posts:", err);
+        container.innerHTML = `
+          <div class="empty-state">
+            <h3>Error loading posts</h3>
+            <p>${err.message}</p>
+            <button onclick="loadPosts()">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    // ===== RENDER POST CARD =====
+    function renderPost(post) {
+      const isImage = post.mediaType === 'image';
+      const media = isImage
+        ? `<img src="${post.mediaUrl}" alt="Generated content">`
+        : `<video controls><source src="${post.mediaUrl}" type="video/mp4"></video>`;
+
+      return `
+        <div class="post-card">
+          <div class="post-media">
+            ${media}
+          </div>
+          <div class="post-content">
+            <div class="post-author">${post.authorName || 'Anonymous'}</div>
+            <div class="post-text">${escapeHtml(post.prompt || 'AI Generated Content')}</div>
+            <div class="post-actions">
+              <button onclick="likePost('${post.id}')">❤️ Like</button>
+              <button onclick="sharePost('${post.mediaUrl}')">📤 Share</button>
+              <button onclick="downloadPost('${post.mediaUrl}')">⬇️ Download</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function likePost(postId) {
+      console.log("Liked post:", postId);
+      // Backend integration would go here
+    }
+
+    function sharePost(url) {
+      if (navigator.share) {
+        navigator.share({
+          title: "Knights Prime AI",
+          text: "Check out this AI-generated content!",
+          url: window.location.href,
+        }).catch(err => console.log("Share cancelled:", err));
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          alert("✅ Link copied to clipboard!");
+        }).catch(err => console.error("Copy failed:", err));
+      }
+    }
+
+    function downloadPost(url) {
+      try {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `knights-prime-${Date.now()}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (err) {
+        console.error("Download error:", err);
+        alert("Failed to download. Try right-clicking and selecting 'Save As'.");
+      }
+    }
+
+    // ===== NAVIGATION =====
+    document.getElementById("home-link").addEventListener("click", () => {
+      window.location.href = "/";
+    });
+
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initClerk);
+    } else {
+      initClerk();
+    }
+  </script>
+</body>
+</html>
